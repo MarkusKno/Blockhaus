@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#315b3b">
+<title>Mein Blockhaus</title>
+
+<style>
+:root{
+ --green:#315b3b;
+ --green2:#47784f;
+ --light:#eaf1e9;
+ --bg:#f3f5f2;
+ --card:#fff;
+ --text:#182019;
+ --muted:#758078;
+ --orange:#e18b22;
+ --red:#c94a42;
+ --blue:#497aa8;
+ --line:#e1e6e1;
+}
+*{box-sizing:border-box}
+body{
+ margin:0;
+ background:var(--bg);
+ color:var(--text);
+ font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display",Arial,sans-serif;
+}
+.app{max-width:700px;margin:auto;padding:18px 15px 110px}
+header{padding:12px 5px 20px}
+.house{font-size:44px}
+h1{margin:3px 0;font-size:31px}
+.sub{color:var(--muted)}
+.card{
+ background:var(--card);
+ border-radius:20px;
+ padding:18px;
+ margin-bottom:18px;
+ box-shadow:0 4px 16px #00000009;
+}
+.status{
+ display:grid;
+ grid-template-columns:repeat(3,1fr);
+ gap:10px;
+}
+.stat{
+ background:var(--light);
+ border-radius:15px;
+ padding:13px 8px;
+ text-align:center;
+}
+.stat strong{display:block;font-size:20px}
+.stat span{font-size:11px;color:var(--muted)}
+.progressTop{
+ display:flex;
+ justify-content:space-between;
+ font-weight:700;
+ margin-bottom:10px
+}
+.progress{
+ height:11px;
+ background:#e5e9e5;
+ border-radius:20px;
+ overflow:hidden
+}
+.bar{
+ height:100%;
+ width:0;
+ background:var(--green);
+ transition:.3s
+}
+.progressText{
+ font-size:12px;
+ color:var(--muted);
+ margin-top:8px
+}
+.section{margin-bottom:20px}
+.sectionHead{
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+ margin:0 5px 8px
+}
+.sectionHead h2{font-size:18px;margin:0}
+.count{font-size:12px;color:var(--muted)}
+.list{
+ background:white;
+ border-radius:18px;
+ overflow:hidden;
+ box-shadow:0 3px 12px #00000007
+}
+.item{
+ display:flex;
+ align-items:center;
+ gap:11px;
+ min-height:62px;
+ padding:12px 14px;
+ border-bottom:1px solid var(--line)
+}
+.item:last-child{border-bottom:0}
+.check{
+ width:27px;height:27px;
+ border:2px solid #aeb7b0;
+ border-radius:50%;
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ flex-shrink:0;
+ cursor:pointer
+}
+.done .check{
+ background:var(--green);
+ border-color:var(--green);
+ color:white
+}
+.check:after{content:"✓";display:none;font-weight:bold}
+.done .check:after{display:block}
+.info{flex:1}
+.name{font-size:15px}
+.done .name{
+ text-decoration:line-through;
+ color:var(--muted)
+}
+.meta{
+ display:flex;
+ gap:7px;
+ margin-top:4px;
+ flex-wrap:wrap
+}
+.badge{
+ font-size:10px;
+ padding:3px 7px;
+ border-radius:8px;
+ background:#eef1ee;
+ color:var(--muted)
+}
+.badge.important{background:#fff0d9;color:#a96812}
+.amount{
+ width:75px;
+ padding:7px 6px;
+ border:1px solid var(--line);
+ border-radius:9px;
+ text-align:center;
+ background:#fafbfa;
+ font-size:12px
+}
+.star,.trash{
+ border:0;background:transparent;
+ cursor:pointer;font-size:20px;
+ color:#aab2ac;padding:4px
+}
+.star.on{color:var(--orange)}
+.trash{font-size:17px}
+.bottom{
+ position:fixed;
+ left:0;right:0;bottom:0;
+ background:#fffffff5;
+ backdrop-filter:blur(15px);
+ border-top:1px solid var(--line);
+ padding:10px 15px calc(10px + env(safe-area-inset-bottom));
+ z-index:5
+}
+.bottomInner{
+ max-width:700px;margin:auto;
+ display:flex;gap:9px
+}
+.add{
+ flex:1;border:0;border-radius:15px;
+ background:var(--green);color:white;
+ padding:15px;font-weight:700
+}
+.reset{
+ border:0;border-radius:15px;
+ background:#e8ece8;padding:15px
+}
+.modalBg{
+ display:none;position:fixed;inset:0;
+ background:#0007;z-index:20;
+ align-items:flex-end
+}
+.modalBg.show{display:flex}
+.modal{
+ width:100%;max-width:700px;margin:auto;
+ background:white;border-radius:24px 24px 0 0;
+ padding:23px 18px calc(23px + env(safe-area-inset-bottom))
+}
+.modal h2{margin-top:0}
+input,select{
+ width:100%;padding:13px;
+ border:1px solid var(--line);
+ border-radius:12px;
+ margin-bottom:12px;
+ font-size:15px;
+ background:#fafbfa
+}
+.modalButtons{display:flex;gap:10px}
+.modalButtons button{
+ flex:1;border:0;border-radius:13px;padding:14px
+}
+.cancel{background:#e8ece8}
+.save{background:var(--green);color:white;font-weight:bold}
+.checkline{
+ display:flex;align-items:center;gap:10px;margin-bottom:15px
+}
+.checkline input{width:auto;margin:0}
+.empty{text-align:center;color:var(--muted);padding:35px}
+@media(max-width:430px){
+ .status{gap:6px}
+ .stat{padding:11px 4px}
+ .amount{width:65px}
+}
+</style>
+</head>
+
+<body>
+<div class="app">
+
+<header>
+ <div class="house">🏡</div>
+ <h1>Mein Blockhaus</h1>
+ <div class="sub">2 Tage Natur · Haus · Hund · Vorräte</div>
+</header>
+
+<div class="card status">
+ <div class="stat">
+  <strong id="total">0</strong>
+  <span>Gesamt</span>
+ </div>
+ <div class="stat">
+  <strong id="done">0</strong>
+  <span>Erledigt</span>
+ </div>
+ <div class="stat">
+  <strong id="important">0</strong>
+  <span>Wichtig</span>
+ </div>
+</div>
+
+<div class="card">
+ <div class="progressTop">
+  <span>Vorbereitung</span>
+  <span id="percent">0%</span>
+ </div>
+ <div class="progress">
+  <div class="bar" id="bar"></div>
+ </div>
+ <div class="progressText" id="progressText">
+  Bereit für zwei Tage im Blockhaus 🌲
+ </div>
+</div>
+
+<main id="content"></main>
+
+</div>
+
+<div class="bottom">
+ <div class="bottomInner">
+  <button class="add" onclick="openModal()">＋ Eintrag hinzufügen</button>
+  <button class="reset" onclick="resetAll()">↻</button>
+ </div>
+</div>
+
+<div class="modalBg" id="modal">
+ <div class="modal">
+  <h2>Neuer Eintrag</h2>
+
+  <input id="name" placeholder="z. B. Mineralwasser">
+
+  <select id="category">
+   <option>Blockhaus</option>
+   <option>Solar & Strom</option>
+   <option>Kühlschrank & Gefrierfach</option>
+   <option>Lebensmittel</option>
+   <option>Hund</option>
+   <option>Gas</option>
+   <option>Heizung & Holz</option>
+   <option>Kleidung</option>
+   <option>Werkzeug & Sicherheit</option>
+   <option>Sonstiges</option>
+  </select>
+
+  <input id="amount" placeholder="Menge, z. B. 2 kg / 6 Liter">
+
+  <label class="checkline">
+   <input id="important" type="checkbox">
+   ⭐ Als wichtig markieren
+  </label>
+
+  <div class="modalButtons">
+   <button class="cancel" onclick="closeModal()">Abbrechen</button>
+   <button class="save" onclick="addItem()">Hinzufügen</button>
+  </div>
+ </div>
+</div>
+
+<script>
+const defaults=[
+
+["Blockhaus","Küche prüfen","",true],
+["Blockhaus","Wohnzimmer prüfen","",false],
+["Blockhaus","Schlafzimmer vorbereiten","",false],
+["Blockhaus","Wasser prüfen","",true],
+["Blockhaus","Toilettenpapier","",false],
+
+["Solar & Strom","Solaranlage prüfen","9,6 kWp",true],
+["Solar & Strom","Batteriestand prüfen","",true],
+["Solar & Strom","Wechselrichter prüfen","",true],
+["Solar & Strom","Stromverbrauch kontrollieren","",false],
+
+["Kühlschrank & Gefrierfach","Kühlschrank einschalten","",true],
+["Kühlschrank & Gefrierfach","Kühlschranktemperatur prüfen","",false],
+["Kühlschrank & Gefrierfach","Gefrierfach prüfen","",false],
+["Kühlschrank & Gefrierfach","Gefriergut kontrollieren","",false],
+["Kühlschrank & Gefrierfach","Kühlware einräumen","",false],
+["Kühlschrank & Gefrierfach","Getränke kaltstellen","",false],
+
+["Lebensmittel","Frühstück","2 Tage",true],
+["Lebensmittel","Mittagessen","2 Tage",false],
+["Lebensmittel","Abendessen","2 Tage",false],
+["Lebensmittel","Brot","",false],
+["Lebensmittel","Aufschnitt / Käse","",false],
+["Lebensmittel","Eier","",false],
+["Lebensmittel","Milch","",false],
+["Lebensmittel","Obst","",false],
+["Lebensmittel","Gemüse","",false],
+["Lebensmittel","Snacks","",false],
+["Lebensmittel","Kaffee / Tee","",false],
+["Lebensmittel","Gewürze","",false],
+["Lebensmittel","Wasser","6 Liter",true],
+
+["Hund","Hundefutter","2 Tage",true],
+["Hund","Leckerlies","",false],
+["Hund","Wasser","",true],
+["Hund","Futternapf","",false],
+["Hund","Wassernapf","",false],
+["Hund","Hundeleine","",true],
+["Hund","Hundedecke","",false],
+["Hund","Kotbeutel","",false],
+
+["Gas","Gasflasche 1 prüfen","",true],
+["Gas","Gasflasche 2 prüfen","",false],
+["Gas","Gasvorrat ausreichend?","",true],
+["Gas","Gasanschluss / Schlauch prüfen","",true],
+["Gas","Gasherd testen","",true],
+
+["Heizung & Holz","Holzvorrat prüfen","",true],
+["Heizung & Holz","Holz hacken","",true],
+["Heizung & Holz","Anmachholz vorbereiten","",false],
+["Heizung & Holz","Feuerholz trocken lagern","",false],
+["Heizung & Holz","Dieselheizung prüfen","",true],
+["Heizung & Holz","Dieselstand prüfen","",true],
+["Heizung & Holz","Dieselheizung testen","",false],
+
+["Kleidung","Unterwäsche","2 Tage",false],
+["Kleidung","Socken","2 Paar",false],
+["Kleidung","T-Shirts","",false],
+["Kleidung","Lange Hose","",false],
+["Kleidung","Pullover / Fleece","",true],
+["Kleidung","Warme Jacke","",true],
+["Kleidung","Regenjacke","",true],
+["Kleidung","Schuhe","",true],
+["Kleidung","Wechselkleidung","",false],
+
+["Werkzeug & Sicherheit","Erste-Hilfe-Set","",true],
+["Werkzeug & Sicherheit","Taschenlampe","",true],
+["Werkzeug & Sicherheit","Powerbank","",false],
+["Werkzeug & Sicherheit","Feuerzeug","",false],
+["Werkzeug & Sicherheit","Werkzeug","",false],
+["Werkzeug & Sicherheit","Multitool","",false],
+["Werkzeug & Sicherheit","Müllbeutel","",false],
+["Werkzeug & Sicherheit","Notfallkontakte prüfen","",true]
+
+];
+
+let items=load();
+
+function makeDefaults(){
+ return defaults.map((x,i)=>({
+  id:Date.now()+i,
+  category:x[0],
+  name:x[1],
+  amount:x[2],
+  important:x[3],
+  done:false
+ }));
+}
+
+function load(){
+ try{
+  const x=localStorage.getItem("blockhausApp");
+  return x?JSON.parse(x):makeDefaults();
+ }catch(e){
+  return makeDefaults();
+ }
+}
+
+function save(){
+ localStorage.setItem("blockhausApp",JSON.stringify(items));
+}
+
+const order=[
+ "Blockhaus",
+ "Solar & Strom",
+ "Kühlschrank & Gefrierfach",
+ "Lebensmittel",
+ "Hund",
+ "Gas",
+ "Heizung & Holz",
+ "Kleidung",
+ "Werkzeug & Sicherheit",
+ "Sonstiges"
+];
+
+function render(){
+
+ const content=document.getElementById("content");
+ content.innerHTML="";
+
+ order.forEach(category=>{
+
+  const list=items.filter(x=>x.category===category);
+  if(!list.length)return;
+
+  const completed=list.filter(x=>x.done).length;
+
+  const section=document.createElement("section");
+  section.className="section";
+
+  section.innerHTML=`
+   <div class="sectionHead">
+    <h2>${esc(category)}</h2>
+    <span class="count">${completed}/${list.length}</span>
+   </div>
+   <div class="list"></div>
+  `;
+
+  const box=section.querySelector(".list");
+
+  list.forEach(item=>{
+
+   const row=document.createElement("div");
+   row.className="item"+(item.done?" done":"");
+
+   row.innerHTML=`
+    <div class="check" onclick="toggle(${item.id})"></div>
+
+    <div class="info">
+     <div class="name">${esc(item.name)}</div>
+     <div class="meta">
+      ${item.important?'<span class="badge important">Wichtig</span>':''}
+      ${item.amount?'<span class="badge">'+esc(item.amount)+'</span>':''}
+     </div>
+    </div>
+
+    <button class="star ${item.important?"on":""}"
+      onclick="important(${item.id})">
+      ${item.important?"★":"☆"}
+    </button>
+
+    <button class="trash" onclick="removeItem(${item.id})">
+      🗑
+    </button>
+   `;
+
+   box.appendChild(row);
+  });
+
+  content.appendChild(section);
+ });
+
+ update();
+}
+
+function update(){
+
+ const total=items.length;
+ const done=items.filter(x=>x.done).length;
+ const importantCount=items.filter(x=>x.important).length;
+ const pct=total?Math.round(done/total*100):0;
+
+ document.getElementById("total").textContent=total;
+ document.getElementById("done").textContent=done;
+ document.getElementById("important").textContent=importantCount;
+ document.getElementById("percent").textContent=pct+"%";
+ document.getElementById("bar").style.width=pct+"%";
+
+ let text="Bereit für zwei Tage im Blockhaus 🌲";
+
+ if(pct===100)text="Alles erledigt – gute Vorbereitung! 🏡";
+ else if(pct>=75)text="Fast fertig! Nur noch wenige Punkte. 💪";
+ else if(pct>=50)text="Die Vorbereitung läuft gut. 🌿";
+ else if(pct>0)text="Los geht's – Schritt für Schritt. 🏕️";
+
+ document.getElementById("progressText").textContent=text;
+}
+
+function toggle(id){
+ const x=items.find(i=>i.id===id);
+ if(!x)return;
+ x.done=!x.done;
+ save();
+ render();
+}
+
+function important(id){
+ const x=items.find(i=>i.id===id);
+ if(!x)return;
+ x.important=!x.important;
+ save();
+ render();
+}
+
+function removeItem(id){
+ if(!confirm("Eintrag wirklich löschen?"))return;
+ items=items.filter(x=>x.id!==id);
+ save();
+ render();
+}
+
+function resetAll(){
+ if(!confirm("Alle Häkchen zurücksetzen?"))return;
+ items.forEach(x=>x.done=false);
+ save();
+ render();
+}
+
+function openModal(){
+ document.getElementById("modal").classList.add("show");
+ setTimeout(()=>document.getElementById("name").focus(),100);
+}
+
+function closeModal(){
+ document.getElementById("modal").classList.remove("show");
+ document.getElementById("name").value="";
+ document.getElementById("amount").value="";
+ document.getElementById("important").checked=false;
+}
+
+function addItem(){
+
+ const name=document.getElementById("name").value.trim();
+ const category=document.getElementById("category").value;
+ const amount=document.getElementById("amount").value.trim();
+ const important=document.getElementById("important").checked;
+
+ if(!name){
+  alert("Bitte einen Namen eingeben.");
+  return;
+ }
+
+ items.push({
+  id:Date.now(),
+  name,
+  category,
+  amount,
+  important,
+  done:false
+ });
+
+ save();
+ render();
+ closeModal();
+}
+
+function esc(value){
+ return String(value)
+  .replace(/&/g,"&amp;")
+  .replace(/</g,"&lt;")
+  .replace(/>/g,"&gt;")
+  .replace(/"/g,"&quot;")
+  .replace(/'/g,"&#039;");
+}
+
+document.getElementById("modal").addEventListener("click",e=>{
+ if(e.target===e.currentTarget)closeModal();
+});
+
+render();
+</script>
+</body>
+</html>
